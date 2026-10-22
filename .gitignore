@@ -1,0 +1,25 @@
+# Go build artifacts
+actual-up-sync
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Go dependency directories
+vendor/
+helper/node_modules/
+data/actual/
+bin/
+
+# Editor files
+.DS_Store
+*.swp
+*.swo
+.env
+config.yaml
+accounts.yaml
+sync-state.yaml
+sync-state.yaml.lock
+preview.csv

@@ -1,0 +1,12 @@
+{
+  "name": "actual-bank-sync-actual-helper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@actual-app/api": "^26.10.0"
+  }
+}

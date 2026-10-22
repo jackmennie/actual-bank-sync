@@ -1,0 +1,17 @@
+actual:
+  password: ""
+  encryptionKey: ""
+  baseUrl: "https://localhost:5006"
+  syncId: ""
+  dataDir: "./data/actual"
+  nodeBinary: "node"
+  helperPath: "./helper/actual-api.mjs"
+
+mappingsFile: "./accounts.yaml"
+syncStateFile: "./sync-state.yaml"
+initialLookbackDays: 90
+verbose: false
+
+providers:
+  up:
+    apiKey: ""
