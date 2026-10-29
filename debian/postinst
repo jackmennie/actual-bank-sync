@@ -1,0 +1,40 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        if ! getent group actual-bank-sync >/dev/null; then
+            addgroup --system actual-bank-sync
+        fi
+        if ! getent passwd actual-bank-sync >/dev/null; then
+            adduser --system --home /var/lib/actual-bank-sync --no-create-home \
+                --ingroup actual-bank-sync --shell /usr/sbin/nologin \
+                --disabled-login actual-bank-sync
+        fi
+
+        install -d -o actual-bank-sync -g actual-bank-sync -m 0750 \
+            /var/lib/actual-bank-sync \
+            /var/lib/actual-bank-sync/data \
+            /var/lib/actual-bank-sync/data/actual \
+            /var/log/actual-bank-sync
+        install -d -o root -g actual-bank-sync -m 0750 /etc/actual-bank-sync
+
+        if [ ! -e /etc/actual-bank-sync/config.yaml ]; then
+            install -o root -g actual-bank-sync -m 0640 \
+                /usr/share/doc/actual-bank-sync/config.example.yaml \
+                /etc/actual-bank-sync/config.yaml
+            sed -i \
+                -e 's#dataDir: "./data/actual"#dataDir: "/var/lib/actual-bank-sync/data/actual"#' \
+                -e 's#helperPath: "./helper/actual-api.mjs"#helperPath: "/usr/lib/actual-bank-sync/helper/actual-api.mjs"#' \
+                -e 's#"./accounts.yaml"#"/var/lib/actual-bank-sync/accounts.yaml"#' \
+                -e 's#"./sync-state.yaml"#"/var/lib/actual-bank-sync/sync-state.yaml"#' \
+                /etc/actual-bank-sync/config.yaml
+        fi
+
+        chown root:actual-bank-sync /etc/actual-bank-sync/config.yaml
+        chmod 0640 /etc/actual-bank-sync/config.yaml
+        chown -R actual-bank-sync:actual-bank-sync /var/lib/actual-bank-sync /var/log/actual-bank-sync
+        ;;
+esac
+
+exit 0

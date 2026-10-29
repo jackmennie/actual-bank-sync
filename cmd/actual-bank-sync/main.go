@@ -17,8 +17,16 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	configPath, args, err := parseGlobalArgs(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+	if len(args) == 0 {
 		fmt.Println("Usage: actual-bank-sync <command>")
+		fmt.Println()
+		fmt.Println("Global options:")
+		fmt.Println("  --config <path>  Configuration file (default: config.yaml)")
 		fmt.Println()
 		fmt.Println("Commands:")
 		fmt.Println("  setup    Configure account mappings")
@@ -26,7 +34,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg, err := config.Load("config.yaml")
+	cfg, err := config.Load(configPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
 		os.Exit(1)
@@ -35,14 +43,14 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	switch os.Args[1] {
+	switch args[0] {
 	case "setup":
 		if err := runSetup(ctx, cfg); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 	case "sync":
-		dryRun, verbose, reportPath, err := parseSyncArgs(os.Args[2:])
+		dryRun, verbose, reportPath, err := parseSyncArgs(args[1:])
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
@@ -66,9 +74,26 @@ func main() {
 		}
 
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", args[0])
 		os.Exit(1)
 	}
+}
+
+func parseGlobalArgs(args []string) (string, []string, error) {
+	configPath := "config.yaml"
+	commandArgs := make([]string, 0, len(args))
+	for i := 0; i < len(args); i++ {
+		if args[i] != "--config" {
+			commandArgs = append(commandArgs, args[i])
+			continue
+		}
+		if i+1 >= len(args) || strings.HasPrefix(args[i+1], "--") {
+			return "", nil, fmt.Errorf("--config requires a file path")
+		}
+		i++
+		configPath = args[i]
+	}
+	return configPath, commandArgs, nil
 }
 
 func runSetup(ctx context.Context, cfg *config.Config) error {

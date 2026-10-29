@@ -1,6 +1,35 @@
 package main
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
+
+func TestParseGlobalArgs(t *testing.T) {
+	tests := []struct {
+		name      string
+		args      []string
+		wantPath  string
+		wantArgs  []string
+		wantError bool
+	}{
+		{name: "default config", args: []string{"sync"}, wantPath: "config.yaml", wantArgs: []string{"sync"}},
+		{name: "config before command", args: []string{"--config", "/etc/actual-bank-sync/config.yaml", "sync", "--dry-run"}, wantPath: "/etc/actual-bank-sync/config.yaml", wantArgs: []string{"sync", "--dry-run"}},
+		{name: "config after command", args: []string{"sync", "--config", "/etc/actual-bank-sync/config.yaml"}, wantPath: "/etc/actual-bank-sync/config.yaml", wantArgs: []string{"sync"}},
+		{name: "missing config path", args: []string{"--config"}, wantError: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			path, gotArgs, err := parseGlobalArgs(test.args)
+			if (err != nil) != test.wantError {
+				t.Fatalf("parseGlobalArgs() error = %v, wantError %t", err, test.wantError)
+			}
+			if err == nil && (path != test.wantPath || !reflect.DeepEqual(gotArgs, test.wantArgs)) {
+				t.Fatalf("parseGlobalArgs() = (%q, %#v), want (%q, %#v)", path, gotArgs, test.wantPath, test.wantArgs)
+			}
+		})
+	}
+}
 
 func TestParseSyncArgs(t *testing.T) {
 	tests := []struct {

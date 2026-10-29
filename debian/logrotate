@@ -1,0 +1,10 @@
+/var/log/actual-bank-sync/sync.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 actual-bank-sync actual-bank-sync
+    su actual-bank-sync actual-bank-sync
+}

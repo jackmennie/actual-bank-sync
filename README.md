@@ -62,3 +62,33 @@ The sync command imports settled UP transactions into the mapped Actual accounts
 `accounts.yaml`, `sync-state.yaml`, and their lock files are local runtime data and are ignored by Git by default. Keep these files persistent and backed up alongside the Actual cache if the installation is upgraded or moved.
 
 Keep the helper's npm dependencies installed beside `helper/actual-api.mjs`, and ensure the scheduler can access the configured Actual cache directory and state files. For example, schedule `cd /opt/actual-bank-sync && /usr/local/bin/actual-bank-sync sync`.
+
+## Debian Package
+
+Build the package on Debian or Ubuntu Linux on the target architecture. The build machine needs Go, Node.js 22+, npm, `dpkg-deb`, `dpkg-architecture`, and the toolchain needed by npm's native dependencies.
+
+```bash
+make deb
+```
+
+On an ARM64 Mac with Docker, build it in a Debian container. The container only needs package-building tools; do not install `cron` or `logrotate` in the builder because they are runtime dependencies of the resulting package:
+
+```bash
+docker run --rm --platform linux/arm64 \
+	-v "$PWD:/workspace" -w /workspace \
+	node:22-bookworm bash -lc '
+		set -e
+		apt-get update -qq
+		apt-get install -y -qq ca-certificates curl dpkg-dev xz-utils build-essential python3
+		curl -fsSLo /tmp/go.tar.gz https://go.dev/dl/go1.26.5.linux-arm64.tar.gz
+		tar -C /usr/local -xzf /tmp/go.tar.gz
+		export PATH="/usr/local/go/bin:$PATH"
+		make deb VERSION=0.1.0-1
+	'
+```
+
+The package is written to `dist/actual-bank-sync_0.1.0-1_arm64.deb`. If cron itself fails to configure on the target system, diagnose that separately from building the package; this build container intentionally does not configure cron.
+
+The package installs the binary, Actual API helper, and its locked production dependencies. It creates the `actual-bank-sync` system user, installs `/etc/actual-bank-sync/config.yaml` from the example on first install, and runs `sync` every 15 minutes from `/etc/cron.d/actual-bank-sync`. Logs go to `/var/log/actual-bank-sync/sync.log`; logrotate retains 14 daily files. Set credentials and the Actual Sync ID in the config file after installation. The cron job runs as the dedicated system user; mappings, checkpoints, and Actual's local cache persist under `/var/lib/actual-bank-sync` and are preserved on package removal.
+
+To select a package version, run `make deb VERSION=0.2.0-1`. To change the cron interval, edit `debian/cron.d` before building the package.

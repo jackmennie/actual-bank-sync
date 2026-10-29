@@ -1,0 +1,10 @@
+Package: actual-bank-sync
+Version: @VERSION@
+Section: utils
+Priority: optional
+Architecture: @ARCH@
+Depends: adduser, ca-certificates, cron, logrotate, nodejs (>= 22), util-linux
+Maintainer: Jack Mennie <jackmennie@users.noreply.github.com>
+Description: Import UP Bank transactions into Actual Budget
+ One-shot importer for settled UP transactions. Uses Actual Budget's supported
+ Node.js API helper and runs periodically from cron.

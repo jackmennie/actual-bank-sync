@@ -12,6 +12,8 @@ vendor/
 helper/node_modules/
 data/actual/
 bin/
+dist/
+build/deb-root/
 
 # Editor files
 .DS_Store
