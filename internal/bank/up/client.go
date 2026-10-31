@@ -72,9 +72,9 @@ func (c *UpClient) GetTransactions(
 			if attributes.Status != "SETTLED" {
 				continue
 			}
-			dateValue := attributes.SettledAt
+			dateValue := attributes.CreatedAt
 			if dateValue == "" {
-				dateValue = attributes.CreatedAt
+				dateValue = attributes.SettledAt
 			}
 			date, err := time.Parse(time.RFC3339, dateValue)
 			if err != nil {

@@ -21,7 +21,7 @@ func TestGetTransactionsPaginatesAndNormalizesSettledTransactions(t *testing.T) 
 			if got := r.URL.Query().Get("filter[since]"); got != "2026-10-01T00:00:00Z" {
 				t.Errorf("since filter = %q", got)
 			}
-			_, _ = w.Write([]byte(`{"data":[{"id":"up-tx-1","attributes":{"status":"SETTLED","description":"Cafe","message":"Breakfast","amount":{"currencyCode":"AUD","valueInBaseUnits":-1250},"createdAt":"2026-10-02T08:00:00Z","settledAt":"2026-10-02T09:00:00Z"},"relationships":{"transferAccount":{"data":{"id":"account-2"}}}}],"links":{"next":"` + server.URL + `/page-2"}}`))
+			_, _ = w.Write([]byte(`{"data":[{"id":"up-tx-1","attributes":{"status":"SETTLED","description":"Cafe","message":"Breakfast","amount":{"currencyCode":"AUD","valueInBaseUnits":-1250},"createdAt":"2026-10-03T08:00:00Z","settledAt":"2026-10-06T09:00:00Z"},"relationships":{"transferAccount":{"data":{"id":"account-2"}}}}],"links":{"next":"` + server.URL + `/page-2"}}`))
 			return
 		}
 		if r.URL.Path == "/page-2" {
@@ -45,8 +45,8 @@ func TestGetTransactionsPaginatesAndNormalizesSettledTransactions(t *testing.T) 
 	if first.ID != "up-tx-1" || first.Amount != -1250 || first.Currency != "AUD" || first.Description != "Cafe" || first.Notes != "Breakfast" || first.TransferAccountID != "account-2" {
 		t.Fatalf("first transaction = %#v", first)
 	}
-	if got := first.Date.Format(time.RFC3339); got != "2026-10-02T09:00:00Z" {
-		t.Fatalf("settled transaction date = %s", got)
+	if got := first.Date.Format(time.RFC3339); got != "2026-10-03T08:00:00Z" {
+		t.Fatalf("transaction date = %s, want createdAt rather than settledAt", got)
 	}
 	second := transactions[1]
 	if second.Notes != "Groceries" || second.Date.Format("2006-01-02") != "2026-10-03" {
